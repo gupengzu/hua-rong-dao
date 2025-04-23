@@ -1,0 +1,25 @@
+spring:
+  application:
+    name:animal-chess
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/hua-rong-dao
+    dirver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1234
+  mail:
+    host: smtp.163.com
+    post: 25
+    username: 17692267492@163.com
+    password: SRmvb3AfTZMAbeVg
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    protocol: smtp
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
