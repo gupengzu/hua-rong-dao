@@ -3,14 +3,14 @@ package org.example.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
-import org.example.pojo.AllUsers;
-import org.example.pojo.Result;
-import org.example.pojo.User;
-import org.example.pojo.UserDTO;
+import org.example.pojo.*;
 import org.example.service.UserService;
+import org.example.utils.AliyunOSSOperator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -20,6 +20,9 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AliyunOSSOperator aliyunOSSOperator;
 
     @GetMapping
     public Result query(
@@ -54,6 +57,14 @@ public class UserController {
     public Result queryAll(){
         List<UserDTO> allUsers=userService.queryAllUsers();
         return Result.success(allUsers);
+    }
+
+    @PostMapping("/image")
+    public Result changeImage(@RequestBody For_image forImage) throws Exception {
+        String username=forImage.getUsername();
+        String url=forImage.getUrl();
+        userService.changeImage(username,url);
+        return Result.success();
     }
 }
 

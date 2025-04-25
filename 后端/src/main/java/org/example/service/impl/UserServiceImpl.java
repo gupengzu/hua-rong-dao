@@ -9,6 +9,7 @@ import org.example.service.UserService;
 import org.example.utils.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -74,4 +75,10 @@ public class UserServiceImpl implements UserService {
         //3.不存在，返回null
         return null;
     }
+
+    @Override
+    public void changeImage(String username, String url) {
+        userMapper.changeImage(username,url);
+    }
+
 }

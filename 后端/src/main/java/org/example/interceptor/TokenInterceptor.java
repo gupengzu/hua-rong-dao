@@ -13,12 +13,17 @@ public class TokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestURI=request.getRequestURI();
+        log.info("进入拦截器，请求路径: {}", requestURI);
+        if(requestURI.equals("/error"))
         // 判断是否为发送验证码请求或注册请求
-        if (requestURI.equals("/registry") && (request.getMethod().equals("GET") || request.getMethod().equals("POST"))) {
+        if (requestURI.equals("/register") ) {
             log.info("注册相关请求，直接放行");
             return true;
         }
-
+        if (requestURI.equals("/registry") || requestURI.startsWith("/registry/")) {
+            log.info("注册相关请求，直接放行");
+            return true;
+        }
 
         if(requestURI.contains("/login")){
             log.info("登录请求");

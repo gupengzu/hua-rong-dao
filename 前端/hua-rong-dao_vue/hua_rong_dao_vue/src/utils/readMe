@@ -1,0 +1,32 @@
+// 为什么要有request文件：
+// 在没有request文件时在leaderboard中使用axios请求数据时，
+// 会在每个页面中都写axios请求代码，导致代码重复，维护困难。
+// import axios from 'axios'
+
+
+// onMounted(() => {
+//     show()
+// })
+// const show=async () => {
+//     const result = await axios.get('https://m1.apifoxmock.com/m1/6258298-5952309-default/users')
+//     if(result.data.code){}
+//     tableData.value = result.data.data.rows;
+// }
+
+
+// const tableData = ref([
+    
+// ])
+
+// 定义request和api中的users.js后可以
+// import { queryAll } from '@/api/users'
+
+
+// onMounted(() => {
+//     show()
+// })
+// const show=async () => {
+//     const result = await queryAll()
+//     if(result.code){}
+//     tableData.value = result.data.rows;
+// }

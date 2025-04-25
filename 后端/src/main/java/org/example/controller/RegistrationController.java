@@ -30,6 +30,8 @@ public class RegistrationController {
 
         //获取当前请求的HttpSession对象，将生成的验证码和验证码的过期时间存储在会话中
         HttpSession session=request.getSession();
+        session.setAttribute("verificationCode",code);
+        session.setAttribute("codeExpirationTime",System.currentTimeMillis()+5*60*1000);
 
         try {
             registrationService.sendEmail(email,code);

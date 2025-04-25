@@ -21,9 +21,12 @@ public interface UserMapper {
     @Select("select * from user where id=#{id}")
     UserDTO queryById(Integer id);
 
-    @Select("select * from user")
+    @Select("select * from user order by award_count DESC ")
     List<UserDTO> queryAll();
 
     @Select("select id,username from user where username=#{username} and password=#{password}")
     User selectByUserNameAndPassword(User user);
+
+    @Insert("update user set image=#{url} where username=#{username}")
+    void changeImage(String username, String url);
 }
