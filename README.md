@@ -37,3 +37,5 @@ CREATE TABLE useringame (
 3.在前端\hua-rong-dao_vue\hua_rong_dao_vue文件中终端输入npm run dev 
 
 4.打开nginx-1.22.0-web，然后运行nginx.exe。然后在浏览器中http://localhost:5173/login  即可使用。
+
+5.本项目暂时未用Linux中的Docker进行部署，后续会更新
