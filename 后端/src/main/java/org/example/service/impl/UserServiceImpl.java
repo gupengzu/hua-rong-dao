@@ -81,4 +81,51 @@ public class UserServiceImpl implements UserService {
         userMapper.changeImage(username,url);
     }
 
+    @Override
+    public void awardAddOne(String userName) {
+        userMapper.awardAddOne(userName);
+    }
+
+    @Override
+    public void storeLayout(StoreLayout store) {
+        if(userMapper.selectByUserNameInLayout(store.getUsername())==null){
+            userMapper.storeLayout(store.getUsername(),store.getCount(),store.getLayout());
+        }else{
+            userMapper.deleteByUserNameInLayout(store.getUsername());
+            userMapper.storeLayout(store.getUsername(),store.getCount(),store.getLayout());
+        }
+
+    }
+
+    @Override
+    public String getLayout(String username) {
+        return userMapper.getLayout(username);
+    }
+
+    @Override
+    public Integer getCount(String username) {
+        return userMapper.getCount(username);
+    }
+
+    @Override
+    public void addGameUsers(UserForSpectate user) {
+        userMapper.addGameUsers(user.getUsername(),user.getImage(),user.getLayout());
+    }
+
+    @Override
+    public void deleteGameUsers(UserForSpectate user) {
+        userMapper.deleteGameUsers(user.getUsername());
+    }
+
+    @Override
+    public List<UserForSpectate> queryPlayingUsers() {
+        List<UserForSpectate> userForSpectateList = userMapper.queryPlayingUsers();
+        return userForSpectateList;
+    }
+
+    @Override
+    public void changeGameUsers(UserForSpectate user) {
+        userMapper.changeGameUsers(user.getUsername(),user.getLayout());
+    }
+
 }

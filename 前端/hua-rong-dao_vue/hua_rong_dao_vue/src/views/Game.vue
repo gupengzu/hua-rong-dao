@@ -1,153 +1,233 @@
-<script setup>
-import { ref, onMounted } from 'vue'; // 导入 ref 和 onMounted
+<template>
+<div>
+    <div id="main">
+        <Ground :unitSize="unitSize" style="position: absolute; top: 0; left: 0;" />
+        <Board 
+        :key="layout"
+        :unitSize="unitSize" 
+        :layout="layout"
+        @move-success="incrementCount"
+        @update-layout="updateLayout"
+        :style="{ position: 'absolute', top: unitSize * 0.8, left: unitSize * 0.5 }" 
+        />
+        <div :style="{ top: `${(unitSize * 0.8 - 34) / 2}px`, left: `${(unitSize * 5 - 124) / 2}px` }"
+            class="select-btn" @click="showLevel = true;">{{ title }}</div>
+        <Level :unitSize="unitSize" :show="showLevel" :handleSelect="handleSelect" />
+    </div>
+    <div class="show-count-container">
+        <ShowCount 
+        ref="showCount"
+        :count="count" 
+        :layout="layout" 
+        @update:count="count=$event"
+        @update:layout="layout=$event"    
+        />
+    </div>
+</div>
+</template>
 
-//定义网格大小
-const gridRows = 4;
-const gridCols = 5;
+<script>
 
-//定义网格状态（0表示空白块）
-const grid = ref([
-  [1, 1, 0, 0],
-  [1, 1, 2, 2],
-  [3, 3, 2, 2],
-  [4, 4, 5, 5],
-  [6, 7, 8, 9],
-])
+import Ground from '@/Component/Ground.vue';
+import Board from '@/Component/Board.vue';
+import Level from '@/Component/Level.vue';
+import ShowCount from '@/Component/ShowCount.vue'; 
+import { addAward,addPlayingUser,deletePlayingUser,changePlayingUser,getPlayingUsers,queryById } from '@/api/users';
+import { onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 
-//定义当前空白块位置
-const emptyBlock = ref({ row: 0, col: 2 });
+export default {
+    components: { Ground, Board, Level, ShowCount },
+    
+    data () {
+        return {
+            unitSize: Math.min(window.innerWidth / 8, window.innerHeight / 8), // 基于宽度和高度的最小值
+            layout: '22222222222222222222',
+            title: '选择关卡',
+            showLevel: false,
+            isGameActive: true, // 游戏是否处于活动状态
+            count: 0
+        }
+    },
+    methods: {
+        handleSelect (level) {
+            this.layout = level.layout;
+            this.title = level.title;
+            this.showLevel = false;
+            this.isGameActive = true; // 游戏开始
+            this.count = 0; // 重置步数
+       },
+        checkVictory() {
+                console.log("before")
+                let userInfo = JSON.parse(localStorage.getItem('loginUser'));
+                console.log(userInfo)
+            addAward(userInfo.username);// 继续游戏
+                console.log("after")
+        },
+        incrementCount() {
+            // console.log(this.count);
+             // 调用 ShowCount 的 addCount 方法
+            this.$refs.showCount.addCount();
+        },
+        updateLayout(newLayout) {
+            this.layout = newLayout;
+            console.log("父组件的 layout 更新为:", newLayout);
+        },
+        async notifyStartGame() {
+            console.log("notifyStartGame函数被调用");
+            const userInfo = JSON.parse(localStorage.getItem('loginUser')) || { username: 'guest' };
+            const result = await queryById(userInfo.id);
+            console.log('获取用户信息:', result);
+            
+            const data = { "username": userInfo.username,"image":result.data.image, "layout": this.layout };
 
-//初始化键盘事件监听
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
+            addPlayingUser(data).catch(error => {
+                console.error('通知服务器用户进入游戏失败:', error);
+            });
 
-//键盘事件处理函数
-const handleKeyDown = (event) => {
-    const { row, col } = emptyBlock.value;
-    let newRow = row;
-    let newCol = col;
-    //根据按键方向更新空白块位置
-    if (event.key === 'ArrowUp' && row < gridRows - 1) newRow++;
-    if (event.key === 'ArrowDown' && row > 0) newRow--;
-    if (event.key === 'ArrowLeft' && col < gridCols - 1) newCol++;
-    if (event.key === 'ArrowRight' && col > 0) newCol--;
+            //动态添加路由
+            
+            this.router.addRoute({
+                path: `/real_spectate/${userInfo.username}`,
+                name: `real_spectate_${userInfo.username}`,
+                component: () => import('@/views/real_spectate.vue')//动态加载组件
+            });
+            console.log(`动态路由已添加: /real_spectate/${userInfo.username}`);
+        }, 
+        notifyExitGame() {
+            console.log("notifyExitGame函数被调用");
+            const userInfo = JSON.parse(localStorage.getItem('loginUser')) || { username: 'guest' };
+            const data = { "username": userInfo.username };
 
-    //移动块
-    moveBlock(newRow, newCol);
-}
-//鼠标点击事件处理函数
-const handleTileClick = (row, col) => {
-    const { row: emptyRow, col: emptyCol } = emptyBlock.value;
-    //判断点击的块是否可以移动
-    if ((row === emptyRow && Math.abs(col - emptyCol) === 1) || (col === emptyCol && Math.abs(row - emptyRow) === 1)) {
-        moveBlock(row, col);
+            deletePlayingUser(data).catch(error => {
+                console.error('通知服务器用户退出游戏失败:', error);
+            });
+        }
+    },
+    created () {
+        location.hash && (this.layout = location.hash.slice(1)) && (this.title = '自定义');
+        window.onresize = () => this.unitSize = Math.min(window.innerWidth / 8, window.innerHeight / 8); // 同步调整
+        window.onhashchange = () => location.hash &&
+            (this.layout = location.hash.slice(1)) && (this.title = '自定义');
+
+        const userInfo = JSON.parse(localStorage.getItem('loginUser'));
+        if (!userInfo || !userInfo.username) {
+            console.error("localStorage 中的 loginUser 或 username 不存在");
+        } else {
+            console.log("WebSocket 使用的用户名:", userInfo.username);
+        }
+
+        //通知服务器用户进入游戏
+        this.notifyStartGame();
+
+        //初始化WebSocket连接
+        this.socket = new WebSocket(`ws://localhost:8080/ws/${userInfo.username}`);
+        this.socket.onopen = () => {
+            console.log("WebSocket连接已打开");
+        };
+        this.socket.onclose=() => {
+            console.log("WebSocket连接已关闭");
+        };
+    },
+    watch: {
+        layout(newLayout,oldLayout) {
+            console.log("父组件的 layout 更新为:", newLayout);
+            console.log("旧的 layout:", oldLayout);
+
+            // 获取用户信息
+            const userInfo = JSON.parse(localStorage.getItem('loginUser')) || { username: 'guest' };
+
+            // 构造请求数据
+            const data = {
+                username: userInfo.username,
+                layout: newLayout
+            };
+
+            // 调用 changePlayingUser 函数
+            changePlayingUser(data).catch(error => {
+                console.error('通知服务器用户布局变化失败:', error);
+            });
+
+            //通过WebSocket通知观战界面
+            if (this.socket) {
+                this.socket.send(JSON.stringify(data));
+                console.log("通过WebSocket发送数据:", data);
+                console.log(`WebSocket URL: ws://localhost:8080/ws/${userInfo.username}`);
+            }
+        }
+    },
+    setup() {
+        const router = useRouter();
+        
+        // 使用 onBeforeUnmount 替代 beforeDestroy
+        onBeforeUnmount(() => {
+            console.log("onBeforeUnmount 函数被调用");
+            const userInfo = JSON.parse(localStorage.getItem('loginUser')) || { username: 'guest' };
+            const data = { "username": userInfo.username };
+
+            deletePlayingUser(data).catch(error => {
+                console.error('通知服务器用户退出游戏失败:', error);
+            });
+            console.log("notifyExitGame 函数调用完毕");
+        });
+
+        return { router };
     }
 }
-
-//块移动函数
-const moveBlock = (newRow, newCol) => {
-    const { row, col } = emptyBlock.value;
-    //交换空白块和目标块
-    [grid.value[row][col], grid.value[newRow][newCol]] = [grid.value[newRow][newCol], grid.value[row][col]];
-    //更新空白块位置
-    emptyBlock.value = { row: newRow, col: newCol };
-    //检查游戏是否完成
-    if (isGameCompleted()) {
-        alert('游戏完成！');
-    }
-}
-
-// 获取块的样式
-const getTileStyle = (tile, rowIndex, colIndex) => {
-  if (tile === 1) {
-    return {
-      gridRow: `${rowIndex + 1} / span 2`, // 从当前行开始，占 2 行
-      gridColumn: `${colIndex + 1} / span 2`, // 从当前列开始，占 2 列
-      backgroundColor: '#f28b82', // 曹操块颜色
-    };
-  }
-  if (tile === 2) {
-    return {
-      gridRow: `${rowIndex + 1} / span 1`, // 从当前行开始，占 1 行
-      gridColumn: `${colIndex + 1} / span 2`, // 从当前列开始，占 2 列
-      backgroundColor: '#fbbc04', // 关羽块颜色
-    };
-  }
-  if (tile === 3) {
-    return {
-      gridRow: `${rowIndex + 1} / span 2`, // 从当前行开始，占 2 行
-      gridColumn: `${colIndex + 1} / span 1`, // 从当前列开始，占 1 列
-      backgroundColor: '#34a853', // 普通块颜色
-    };
-  }
-  return {
-    gridRow: `${rowIndex + 1} / span 1`, // 默认占 1 行
-    gridColumn: `${colIndex + 1} / span 1`, // 默认占 1 列
-    backgroundColor: '#4285f4', // 士兵块颜色
-  };
-};
 
 </script>
 
-<template>
-  <div class="game-container">
-    <div class="grid">
-      <div
-        v-for="(row, rowIndex) in grid"
-        :key="rowIndex"
-        class="row"
-      >
-        <div
-          v-for="(tile, colIndex) in row"
-          :key="colIndex"
-          class="tile"
-          :class="{ empty: tile === 0 }"
-          :style="getTileStyle(tile,rowIndex,colIndex)"
-          @click="handleTileClick(rowIndex, colIndex)"
-        >
-          {{ tile !== 0 ? tile : '' }}
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<style scoped>
-/* 游戏容器样式 */
-.game-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh; /* 全屏高度 */
-  background-color: #f0f0f0; /* 背景颜色 */
+<style lang="less">
+#main {
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.6); /* 半透明白色背景 */
+    background-image: none; /* 移除背景图片 */
+    border: 2px solid #ccc; /* 边框 */
+    padding: 20px; /* 内边距 */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+    border-radius: 10px; /* 圆角 */
 }
 
-/* 网格样式 */
-.grid {
-  display: grid;
-  grid-template-rows: repeat(5, 80px); /* 每行高度 */
-  grid-template-columns: repeat(4, 80px); /* 每列宽度 */
-  gap: 0; /* 去掉块之间的间距 */
-  border: 2px solid #ccc; /* 网格外边框 */
-  box-sizing: border-box; /* 确保边框不会影响块大小 */
+.select-btn {
+    position: relative; /* 确保 z-index 生效 */
+    z-index: 10; /* 设置更高的层级 */
+    margin-top: 0px;
+    background-color: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
+    color: #000; /* 黑色文字 */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* 半透明边框 */
+    border-radius: 5px; /* 圆角 */
+    min-width: 120px;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease; /* 添加过渡效果 */
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.8); /* 鼠标悬停时背景颜色加深 */
+        border-color: rgba(255, 255, 255, 1); /* 鼠标悬停时边框颜色加深 */
+    }
+
+    &:active {
+        color: #09c; /* 点击时文字颜色变化 */
+    }
 }
 
-.tile {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #4285f4;
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
-  border: 1px solid #ccc; /* 每个块的边框 */
-  box-sizing: border-box; /* 确保边框不会影响块大小 */
-}
-
-.tile.empty {
-  background-color: #fff; /* 空白块颜色 */
-  border: 1px solid #ccc; /* 空白块边框 */
-  box-sizing: border-box; /* 确保边框不会影响块大小 */
-}
+.show-count-container{
+    position: absolute;
+    top:10%;
+    right:5%;
+    width: 200px;
+    background-color: #fff;
+    border:1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}    
 </style>

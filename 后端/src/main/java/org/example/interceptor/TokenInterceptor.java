@@ -30,6 +30,15 @@ public class TokenInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        System.out.println("请求路径: " + requestURI);
+        // 放行 WebSocket 请求
+        if (requestURI.contains("/ws")) {
+            System.out.println("WebSocket请求，直接放行");
+            return true;
+        }
+
+
+
         String token=request.getHeader("token");
 
         if(token==null||token.isEmpty()){

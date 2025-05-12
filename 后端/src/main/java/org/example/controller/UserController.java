@@ -66,6 +66,53 @@ public class UserController {
         userService.changeImage(username,url);
         return Result.success();
     }
+    @PostMapping("/award")
+    public Result awardAddOne(@RequestBody User user){
+        String userName=user.getUsername();
+        userService.awardAddOne(userName);
+        return Result.success();
+    }
+
+    @PostMapping("/storeLayout")
+    public Result storeLayout(@RequestBody StoreLayout store){
+        userService.storeLayout(store);
+        return Result.success();
+    }
+    @PostMapping("/getLayout")
+    public Result getLayout(@RequestBody StoreLayout store){
+        String username=store.getUsername();
+        Boolean userExist=(userService.getLayout(username)!=null);
+        if(!userExist){
+            return Result.success();
+        }else {
+            store.setLayout(userService.getLayout(username));
+            store.setCount(userService.getCount(username));
+            return Result.success(store);
+        }
+    }
+    @PostMapping("/addPlayingUser")
+    public Result addGameUsers(@RequestBody UserForSpectate user){
+        userService.addGameUsers(user);
+        return Result.success();
+    }
+
+    @PostMapping("/changePlayingUser")
+    public Result changeGameUsers(@RequestBody UserForSpectate user){
+        userService.changeGameUsers(user);
+        return Result.success();
+    }
+
+    @PostMapping("/deletePlayingUser")
+    public Result deleteGameUsers(@RequestBody UserForSpectate user){
+        userService.deleteGameUsers(user);
+        return Result.success();
+    }
+
+    @GetMapping("/getPlayingUsers")
+    public Result playingUsers(){
+        List<UserForSpectate> allUsers=userService.queryPlayingUsers();
+        return Result.success(allUsers);
+    }
 }
 
 

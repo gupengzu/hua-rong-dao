@@ -22,5 +22,27 @@ const startGame = () => {
 
 
 <style scoped>
+.start-container {
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    height: 100vh; /* 占满整个视口高度 */
+    /* 移除背景颜色，使背景透明 */
+}
 
+.start-button {
+    background-color: rgba(255, 255, 255, 0.6); /* 半透明白色背景 */
+    color: #000; /* 黑色文字 */
+    border: 1px solid rgba(255, 255, 255, 0.8); /* 半透明边框 */
+    font-size: 18px; /* 调整文字大小 */
+    padding: 10px 20px; /* 按钮内边距 */
+    border-radius: 8px; /* 圆角 */
+    cursor: pointer; /* 鼠标悬停时显示手型 */
+    transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+.start-button:hover {
+    background-color: rgba(255, 255, 255, 0.8); /* 鼠标悬停时背景颜色加深 */
+    border-color: rgba(255, 255, 255, 1); /* 鼠标悬停时边框颜色加深 */
+}
 </style>

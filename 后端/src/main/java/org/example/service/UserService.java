@@ -19,4 +19,20 @@ public interface UserService {
     LoginInfo login(User user);
 
     void changeImage(String username, String url);
+
+    void awardAddOne(String userName);
+
+    void storeLayout(StoreLayout store);
+
+    String getLayout(String username);
+
+    Integer getCount(String username);
+
+    void addGameUsers(UserForSpectate user);
+
+    void deleteGameUsers(UserForSpectate user);
+
+    List<UserForSpectate> queryPlayingUsers();
+
+    void changeGameUsers(UserForSpectate user);
 }

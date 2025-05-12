@@ -87,6 +87,11 @@ input.click(); // 模拟点击文件输入框
 
 <template>
   <div class="common-layout">
+    <!-- 背景视频 -->
+    <video autoplay muted loop id="background-video">
+      <source src="@/assets/水墨长画卷大屏背景.mp4" type="video/mp4" />
+    </video>
+
     <el-container>
       <!-- Header 区域 -->
       <el-header class="header">
@@ -136,12 +141,13 @@ input.click(); // 模拟点击文件输入框
 
 
 <style scoped>
+
 .header {
   display: flex;
-  justify-content: space-between; /* 左右对齐 */
+  justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  background-color: #f5f5f5;
+  background-color: rgba(245, 245, 245, 0.8); /* 半透明背景 */
   height: 60px;
 }
 
@@ -161,5 +167,35 @@ input.click(); // 模拟点击文件输入框
   height: 40px;
   border-radius: 50%;
   margin-right: 10px;
+}
+
+#background-video {
+  position: fixed; /* 固定位置，确保视频覆盖整个页面 */
+  top: 0;
+  left: 0;
+  width: 100%; /* 宽度占满 */
+  height: 100%; /* 高度占满 */
+  object-fit: cover; /* 保持视频比例填充容器 */
+  z-index: -1; /* 确保视频在所有内容的后面 */
+}
+
+.common-layout {
+  position: relative; /* 确保子元素定位正确 */
+  min-height: 100vh; /* 确保内容区域占满屏幕高度 */
+}
+
+.header-actions .el-button {
+  background-color: rgba(255, 255, 255, 0.6) !important; /* 半透明白色背景 */
+  color: #000 !important; /* 黑色文字 */
+  border: 1px solid rgba(255, 255, 255, 0.8); /* 半透明边框 */
+  font-size: 14px; /* 调整文字大小 */
+  padding: 5px 10px; /* 调整按钮内边距 */
+  border-radius: 8px; /* 圆角 */
+  transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+.header-actions .el-button:hover {
+  background-color: rgba(255, 255, 255, 0.8) !important; /* 鼠标悬停时背景颜色加深 */
+  border-color: rgba(255, 255, 255, 1); /* 鼠标悬停时边框颜色加深 */
 }
 </style>

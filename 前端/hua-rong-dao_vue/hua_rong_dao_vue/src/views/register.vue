@@ -60,9 +60,16 @@ const toLogin = () => {
 
 <template>
   <div id="container">
+
+    <!-- 背景视频 -->
+    <video autoplay muted loop id="background-video">
+      <source src="@/assets/16mins超清水墨视频素材，无水印.mp4" type="video/mp4" />
+    </video>
+
+    <!-- 注册表单 -->
     <div class="register-form">
       <el-form label-width="100px">
-        <p class="title">Tlias智能学习辅助系统 - 注册</p>
+        <p class="title">华容道 - 注册</p>
         <el-form-item label="用户名" prop="username">
           <el-input v-model="registerForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
@@ -96,13 +103,24 @@ const toLogin = () => {
   justify-content: center; /* 水平居中 */
   align-items: center; /* 垂直居中 */
   height: 100vh; /* 占满整个视口高度 */
-  background-color: #f5f5f5; /* 背景颜色 */
+  position: relative; /* 确保子元素定位正确 */
+  overflow: hidden; /* 防止内容溢出 */
+}
+
+#background-video {
+  position: absolute; /* 绝对定位 */
+  top: 0; /* 顶部对齐 */
+  left: 0; /* 左侧对齐 */
+  width: 100%; /* 宽度占满 */
+  height: 100%; /* 高度占满 */
+  object-fit: cover; /* 保持视频比例填充容器 */
+  z-index: -1; /* 背景视频在最底层 */
 }
 
 .register-form {
   width: 400px; /* 设置表单宽度 */
   padding: 20px; /* 内边距 */
-  background: #ffffff; /* 背景颜色 */
+  background: rgba(255, 255, 255, 0.8); /* 半透明背景 */
   border-radius: 8px; /* 圆角 */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 添加阴影 */
 }
@@ -119,8 +137,30 @@ const toLogin = () => {
   gap: 10px; /* 输入框和按钮之间的间距 */
 }
 
+.verification-code .el-button {
+  background-color: rgba(255, 255, 255, 0.3) !important; /* 半透明白色背景 */
+  color: #000 !important; /* 黑色文字 */
+  border: 1px solid rgba(255, 255, 255, 1); /* 半透明边框 */
+  font-size: 16px; /* 调整文字大小 */
+  padding: 10px 0; /* 调整按钮高度 */
+  border-radius: 8px; /* 圆角 */
+  transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+.verification-code .el-button:hover {
+  background-color: rgba(255, 255, 255, 1) !important; /* 鼠标悬停时背景颜色加深 */
+  border-color: rgba(255, 255, 255, 1); /* 鼠标悬停时边框颜色加深 */
+}
+
 .button {
   width: 100px; /* 按钮宽度 */
   margin-right: 10px; /* 按钮间距 */
+  background-color: rgba(255, 255, 255, 0.3); /* 半透明白色背景 */
+  color: #000; /* 黑色文字 */
+  border: 1px solid rgba(255, 255, 255, 0.6); /* 半透明边框 */
+}
+.button:hover {
+  background-color: rgba(255, 255, 255, 0.5); /* 鼠标悬停时背景颜色加深 */
+  border-color: rgba(255, 255, 255, 0.8); /* 鼠标悬停时边框颜色加深 */
 }
 </style>
