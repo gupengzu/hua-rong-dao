@@ -1,8 +1,7 @@
 <template>
     <svg :width="width" :height="height" @touchstart="e => e.preventDefault()">
         <Grid
-            v-for="(t, i) in state"
-            v-if="t !== '1' && t != '0'"
+            v-for="(t, i) in layout"
             :type="t"
             :position="i"
             :key="`grid-${i}`"
@@ -11,6 +10,7 @@
             :startX="(i % 4) * unitSize"
             :startY="Math.floor(i / 4) * unitSize"
             :handleMove="handleMove"
+            @mouse-up-select="handleMouseUpSelect"
         />
         <rect class="tip" :class="{ success, thinking }" 
             :x="unitSize * 1.2" :y="unitSize * 5.05"
@@ -24,6 +24,9 @@
 
 import Grid from './Grid.vue';
 import core from '@/api/core.js'
+import { ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
+
 
 export default {
     components: { Grid },
@@ -67,7 +70,16 @@ export default {
 
                 if (this.state[13] === '5') {
                     this.$parent.layout = '22222222222222222222';
-                    alert('恭喜你，成功过关！');
+                    ElMessageBox.alert(
+                        `恭喜你，成功过关！<br>共用步数：<b style="color:#409EFF">${this.$parent.count}</b> 步`,
+                        '通关成功',
+                        {
+                            dangerouslyUseHTMLString: true,
+                            confirmButtonText: '确定',
+                            center: true,
+                            customClass: 'success-message-box'
+                        }
+                    );
                     this.$parent.isGameActive = false; // 游戏结束
                     console.log("beforebefore")
                     this.$parent.checkVictory(); // 检查是否成功过关,追加获胜数
@@ -76,7 +88,14 @@ export default {
 
             }
         },
-        help () {
+        // 处理鼠标抬起事件,通知父组件改变选中位置
+        handleMouseUpSelect(position) {
+            // 通知 Game.vue 选中该滑块
+            this.$emit('select-index', position);
+        },
+        help() {
+            console.log("help调用");
+            console.log(this.answer);
             this.thinking = true;
             setTimeout(() => {
                 if (!this.answer.length)
@@ -84,6 +103,8 @@ export default {
                 if (this.answer.length)
                     this.state = this.answer.pop();
                 this.thinking = false;
+                this.$emit('update-layout', this.state);
+                this.$emit('help-used');
             }, 10);
         }
     }
@@ -108,5 +129,4 @@ export default {
             }
         }
     }
-
 </style>

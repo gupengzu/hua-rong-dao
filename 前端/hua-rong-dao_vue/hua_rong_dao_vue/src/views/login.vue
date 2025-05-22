@@ -3,6 +3,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginApi } from '@/api/login'
 import{ElMessage} from 'element-plus'
+import loginMusic from '@/assets/login.mp3'
+
+
 
 const loginForm = ref({ username: '', password: '' })
 const router = useRouter()
@@ -16,7 +19,7 @@ const login =async () => {
     // 登录成功，保存用户信息到本地存储
     localStorage.setItem('loginUser', JSON.stringify(result.data));
     // 登录成功，跳转到首页
-    router.push('/')
+    router.push('/normalGame')
   } else {
     // 登录失败，提示错误信息
     ElMessage.error(result.msg);
@@ -38,7 +41,8 @@ const guestLogin = () => {
 
 <template>
   <div id="container">
-
+    <!-- 背景音乐 -->
+    <audio :src="loginMusic" autoplay loop></audio>
     <!-- 背景视频 -->
     <video autoplay muted loop id="background-video">
       <source src="@/assets/login_backVideo.mp4" type="video/mp4" />

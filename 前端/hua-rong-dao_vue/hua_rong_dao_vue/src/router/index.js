@@ -18,7 +18,7 @@ const router = createRouter({
         {
             path: '/',
             component: Layout, // Layout 作为父路由
-            redirect: '/normalGame', // 默认重定向到 normalGame
+            redirect: '/login', // 默认重定向到 normalGame
             children: [
                 {
                     path: 'normalGame',

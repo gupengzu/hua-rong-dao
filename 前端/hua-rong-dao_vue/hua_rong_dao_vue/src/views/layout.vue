@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'; // 导入 useRouter
 import { ref, onMounted } from 'vue'; // 导入 ref 和 onMounted
 import {uploadImage} from '@/api/upload'; // 导入上传图片的 API
 import { change,queryAll,queryById } from '@/api/users'; // 导入查询用户信息的 API
+import layoutMusic from '@/assets/layout.mp3'
+
+
 
 const router = useRouter();
 const userPhoto = ref('');
@@ -39,7 +42,21 @@ const fetchUserInfo = async () => {
   }
 };
 onMounted(() => {
-  fetchUserInfo()
+  fetchUserInfo();
+
+  const audio = document.querySelector('audio');
+  if (audio) {
+    // 设置音频自动播放
+    console.log('自动播放音频');
+    audio.play().catch(() => {
+      // 自动播放失败，等待用户交互
+      const resumeAudio = () => {
+        audio.play();
+        document.removeEventListener('click', resumeAudio);
+      };
+      document.addEventListener('click', resumeAudio);
+    });
+  }
 })
 
 
@@ -87,6 +104,8 @@ input.click(); // 模拟点击文件输入框
 
 <template>
   <div class="common-layout">
+    <!-- 背景音乐 -->
+    <audio :src="layoutMusic" autoplay loop></audio>
     <!-- 背景视频 -->
     <video autoplay muted loop id="background-video">
       <source src="@/assets/水墨长画卷大屏背景.mp4" type="video/mp4" />
@@ -111,22 +130,22 @@ input.click(); // 模拟点击文件输入框
         <!-- 左侧菜单 -->
         <el-aside width="200px" class="aside">
           <!-- 左侧菜单栏 -->
-            <el-menu router="true">
+            <el-menu :router="true">
               <!-- 正常游戏菜单 -->
-              <el-menu-item index="normalGame">
-                <el-icon><GameIcon /></el-icon> 正常游戏
+              <el-menu-item index="/normalGame">
+                正常游戏
               </el-menu-item>
               <!-- 限时模式菜单 -->
-              <el-menu-item index="timeMode">
-                <el-icon><TimerIcon /></el-icon> 限时模式
+              <el-menu-item index="/timeMode">
+                限制步数模式
               </el-menu-item>
               <!-- 排行榜菜单 -->
-              <el-menu-item index="leaderboard">
-                <el-icon><RankingIcon /></el-icon> 排行榜
+              <el-menu-item index="/leaderboard">
+                排行榜
               </el-menu-item>
               <!-- 观战菜单 -->
-              <el-menu-item index="spectate">
-                <el-icon><SpectateIcon /></el-icon> 观战
+              <el-menu-item index="/spectate">
+                观战
               </el-menu-item>
             </el-menu>
         </el-aside>

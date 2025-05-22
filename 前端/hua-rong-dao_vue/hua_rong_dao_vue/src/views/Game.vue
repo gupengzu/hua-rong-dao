@@ -1,5 +1,6 @@
 <template>
 <div>
+    <button class="undo-btn" @click="handleUndo">悔棋</button>
     <div id="main">
         <Ground :unitSize="unitSize" style="position: absolute; top: 0; left: 0;" />
         <Board 
@@ -8,6 +9,8 @@
         :layout="layout"
         @move-success="incrementCount"
         @update-layout="updateLayout"
+        @select-index="handleSelectIndex"
+        @help-used="count++"
         :style="{ position: 'absolute', top: unitSize * 0.8, left: unitSize * 0.5 }" 
         />
         <div :style="{ top: `${(unitSize * 0.8 - 34) / 2}px`, left: `${(unitSize * 5 - 124) / 2}px` }"
@@ -23,6 +26,10 @@
         @update:layout="layout=$event"    
         />
     </div>
+    <div class="move-bottom-right">
+        <!-- 移动控制组件 -->
+        <Move ref="move" :layout="layout" @update-layout="updateLayout" @move-success="incrementCount" />
+    </div>
 </div>
 </template>
 
@@ -32,12 +39,13 @@ import Ground from '@/Component/Ground.vue';
 import Board from '@/Component/Board.vue';
 import Level from '@/Component/Level.vue';
 import ShowCount from '@/Component/ShowCount.vue'; 
+import Move from '@/Component/Move.vue'; 
 import { addAward,addPlayingUser,deletePlayingUser,changePlayingUser,getPlayingUsers,queryById } from '@/api/users';
 import { onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 
 export default {
-    components: { Ground, Board, Level, ShowCount },
+    components: { Ground, Board, Level, ShowCount,Move },
     
     data () {
         return {
@@ -46,7 +54,8 @@ export default {
             title: '选择关卡',
             showLevel: false,
             isGameActive: true, // 游戏是否处于活动状态
-            count: 0
+            count: 0,
+            history: [] // 保存 { layout, selectedIndex }
         }
     },
     methods: {
@@ -69,9 +78,49 @@ export default {
              // 调用 ShowCount 的 addCount 方法
             this.$refs.showCount.addCount();
         },
+        handleUndo() {
+            if (this.history.length > 0) {
+                const prev = this.history.pop();
+                console.log("layout更改为：", prev.layout);
+                this.layout = prev.layout;
+                if (this.count > 0) this.count--;
+                this.$nextTick(() => {
+                    // 恢复 Move 的选中位置
+                    console.log("恢复 Move 的选中位置:", prev.selectedIndex);
+                    this.$refs.move.setSelectedIndex(prev.selectedIndex);
+                });
+            } else {
+                alert('没有可以悔棋的步骤了！');
+            }
+        },
         updateLayout(newLayout) {
+            const moveRef = this.$refs.move;
+            let selectedIndex = -1;
+            if (moveRef && moveRef.selectedIndex !== undefined) {
+                selectedIndex = typeof moveRef.selectedIndex === 'object' && 'value' in moveRef.selectedIndex
+                    ? moveRef.selectedIndex.value
+                    : moveRef.selectedIndex;
+            }
+            console.log('保存到history的selectedIndex:', selectedIndex);
+            console.log('保存到history的layout:', this.layout);
+            this.history.push({ layout: this.layout, selectedIndex });
             this.layout = newLayout;
-            console.log("父组件的 layout 更新为:", newLayout);
+        },
+        //用于在鼠标点击后重新确定选中位置
+        handleSelectIndex(newIndex) {
+            // 保存当前 layout 和当前选中位置到 history
+            const moveRef = this.$refs.move;
+            let selectedIndex = -1;
+            if (moveRef && moveRef.selectedIndex !== undefined) {
+                selectedIndex = typeof moveRef.selectedIndex === 'object' && 'value' in moveRef.selectedIndex
+                    ? moveRef.selectedIndex.value
+                    : moveRef.selectedIndex;
+            }
+
+            // 设置 Move 的新选中位置
+            if (this.$refs.move && typeof newIndex === 'number') {
+                this.$refs.move.setSelectedIndex(newIndex);
+            }
         },
         async notifyStartGame() {
             console.log("notifyStartGame函数被调用");
@@ -143,6 +192,7 @@ export default {
                 layout: newLayout
             };
 
+            
             // 调用 changePlayingUser 函数
             changePlayingUser(data).catch(error => {
                 console.error('通知服务器用户布局变化失败:', error);
@@ -229,5 +279,25 @@ export default {
     border-radius: 8px;
     padding: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}    
+}  
+.undo-btn {
+    position: absolute;
+    top: 18%;
+    left: 290px;
+    z-index: 100;
+    padding: 6px 16px;
+    background: rgba(255,255,255,0.7);  // 半透明白色背景
+    color: #000;                        // 黑色文字
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}  
+.move-bottom-right {
+    position: fixed;
+    right: 40px;
+    bottom: 40px;
+    z-index: 200;
+}
 </style>
+

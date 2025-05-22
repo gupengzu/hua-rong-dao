@@ -3,7 +3,7 @@ spring:
     name:animal-chess
 
   datasource:
-    url: jdbc:mysql://localhost:3306/hua-rong-dao
+    url: jdbc:mysql://@localhost/hua-rong-dao
     dirver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 1234

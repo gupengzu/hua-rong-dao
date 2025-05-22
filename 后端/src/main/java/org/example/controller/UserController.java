@@ -82,14 +82,38 @@ public class UserController {
     public Result getLayout(@RequestBody StoreLayout store){
         String username=store.getUsername();
         Boolean userExist=(userService.getLayout(username)!=null);
+        //用户根本没有存过档
         if(!userExist){
             return Result.success();
-        }else {
+        } else if (!isVaildLayout(userService.getLayout(username))) {
+            //layout是个字符串，保证其仅由0-5的数字组成，且有且仅有一个5
+            return Result.success();
+        } else {
             store.setLayout(userService.getLayout(username));
             store.setCount(userService.getCount(username));
             return Result.success(store);
         }
     }
+    public boolean isVaildLayout(String layout){
+        //layout是个字符串，保证其长度为20，保证其仅由0-5的数字组成，且有且仅有一个5
+        if (layout.length() != 20) {
+            return false;
+        }
+        int count = 0;
+        for (int i = 0; i < layout.length(); i++) {
+            char c = layout.charAt(i);
+            if (c < '0' || c > '5') {
+                return false;
+            }
+            if (c == '5') {
+                count++;
+            }
+        }
+        return count == 1;
+    }
+
+
+
     @PostMapping("/addPlayingUser")
     public Result addGameUsers(@RequestBody UserForSpectate user){
         userService.addGameUsers(user);

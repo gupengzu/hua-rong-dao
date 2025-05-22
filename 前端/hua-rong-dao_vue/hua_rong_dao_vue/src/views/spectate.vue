@@ -6,6 +6,7 @@ import { useRouter,useRoute } from 'vue-router';
 
 const playingUsers = ref([]); // 存储正在游玩的用户列表
 const router = useRouter(); // 用于路由跳转
+const route = useRoute();
 
 // 获取正在游玩的用户列表
 const fetchPlayingUsers = async () => {
@@ -27,6 +28,8 @@ const spectateUser = (username) => {
   console.log(`被观战用户: ${username},调用spectateUser函数`);
   router.push(`/real_spectate/${username}`); // 跳转到观战页面
 };
+
+// 监听路由变化
 
 // 在组件挂载时获取用户列表
 onMounted(() => {

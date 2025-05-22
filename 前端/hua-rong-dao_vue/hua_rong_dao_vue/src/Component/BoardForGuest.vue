@@ -74,6 +74,7 @@ export default {
                     this.state = this.answer.pop();
                 this.thinking = false;
             }, 10);
+            this.$emit('help-used'); // 触发 help 事件
         }
     }
 }

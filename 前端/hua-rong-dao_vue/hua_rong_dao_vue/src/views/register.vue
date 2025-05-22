@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { sendVerificationCode,registerApi } from '@/api/register'
-
+import registerMusic from '@/assets/register.mp3'
 
 const router = useRouter();
 
@@ -60,8 +60,9 @@ const toLogin = () => {
 
 <template>
   <div id="container">
-
-    <!-- 背景视频 -->
+     <!-- 背景音乐 -->
+     <audio :src="registerMusic" autoplay loop></audio>    
+     <!-- 背景视频 -->
     <video autoplay muted loop id="background-video">
       <source src="@/assets/16mins超清水墨视频素材，无水印.mp4" type="video/mp4" />
     </video>

@@ -117,7 +117,7 @@
 
 import caocaoImage from '@/assets/caocao.png';
 import guanyuImage from '@/assets/guanyu.png';
-import zhaoyunImage from '@/assets/zhaoyun.png';
+import zhaoyunImage from '@/assets/zhaoyun.jpg';
 import xiaobingImage from '@/assets/xiaobing.png';
 
 export default {
@@ -258,6 +258,20 @@ export default {
             // 重置滑块的位置
             this.x = this.startX;
             this.y = this.startY;
+
+            // 新增：鼠标释放时通知父组件当前滑块位置
+            this.$emit('mouse-up-select', this.position);
+        },
+        fillColor() {
+            switch (this.type) {
+            case '1': return '#eee'; // 实体
+            case '0': return '#fff'; // 空位
+            case '2': return '#09c'; // 单兵
+            case '3': return '#6cf'; // 竖行
+            case '4': return '#fc6'; // 横行
+            case '5': return '#f44'; // BOSS
+            default: return '#ccc';
+        }
         }
     }
 }
