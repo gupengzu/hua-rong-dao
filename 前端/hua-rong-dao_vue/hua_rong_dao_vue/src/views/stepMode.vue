@@ -1,49 +1,55 @@
 <template>
-<div>
-    <button class="undo-btn" @click="handleUndo">悔棋</button>
-    <div id="main">
-        <Ground :unitSize="unitSize" style="position: absolute; top: 0; left: 0;" />
-        <Board 
-        :unitSize="unitSize" 
-        :layout="layout"
-        @move-success="incrementCount"
-        @update-layout="updateLayout"
-        @select-index="handleSelectIndex"
-        @help-used="count++"
-        @victory="handleVictory" 
-        :style="{ position: 'absolute', top: unitSize * 0.8, left: unitSize * 0.5 }" 
-        />
-        <div :style="{ top: `${(unitSize * 0.8 - 34) / 2}px`, left: `${(unitSize * 5 - 124) / 2}px` }"
-            class="select-btn" @click="showLevel = true;">{{ title }}</div>
-        <Level :unitSize="unitSize" :show="showLevel" :handleSelect="handleSelect" />
-    </div>
-    <div class="show-count-container">
-        <ShowCount 
-        ref="showCount"
-        :count="count" 
-        :layout="layout" 
-        @update:count="count=$event"
-        @update:layout="layout=$event"    
-        />
-    </div>
-    <div class="move-bottom-right">
-        <!-- 移动控制组件 -->
-        <Move ref="move" :layout="layout" @update-layout="updateLayout" @move-success="incrementCount" />
-    </div>
-</div>
+  <div>
+      <div id="main">
+          <Ground :unitSize="unitSize" style="position: absolute; top: 0; left: 0;" />
+          <Board 
+          :key="layout"
+          :unitSize="unitSize" 
+          :layout="layout"
+          @move-success="incrementCount"
+          @update-layout="updateLayout"
+          @select-index="handleSelectIndex"
+          @help-used="count++"
+          :style="{ position: 'absolute', top: unitSize * 0.8, left: unitSize * 0.5 }" 
+          />
+          <div :style="{ top: `${(unitSize * 0.8 - 34) / 2}px`, left: `${(unitSize * 5 - 124) / 2}px` }"
+              class="select-btn" @click="showLevel = true;">{{ title }}</div>
+          <Level :unitSize="unitSize" :show="showLevel" :handleSelect="handleSelect" />
+      </div>
+      <div class="show-count-container">
+          <ShowCount 
+          ref="showCount"
+          :count="count" 
+          :layout="layout" 
+          :limit="stepLimit"
+          @update:count="count=$event"
+          @update:layout="layout=$event"    
+          />
+          <!-- 添加按钮 -->
+          <div class="limit-control">
+              <button @click="decreaseLimit">减少限制</button>
+              <span>当前限制：{{ stepLimit }}</span>
+              <button @click="increaseLimit">增加限制</button>
+          </div>
+      </div>
+      <div class="move-bottom-right">
+          <!-- 移动控制组件 -->
+          <Move ref="move" :layout="layout" @update-layout="updateLayout" @move-success="incrementCount" />
+      </div>
+  </div>
 </template>
-
-<script>
-
+  
+  <script>
+  
 import Ground from '@/Component/Ground.vue';
 import Board from '@/Component/Board.vue';
 import Level from '@/Component/Level.vue';
-import ShowCount from '@/Component/ShowCount.vue'; 
-import Move from '@/Component/Move.vue'; 
+import ShowCount from '@/Component/ShowCount_limit.vue'; 
+import Move from '@/Component/Move_limit.vue';
 import { addAward,addPlayingUser,deletePlayingUser,changePlayingUser,getPlayingUsers,queryById } from '@/api/users';
 import { onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-
+  
 export default {
     components: { Ground, Board, Level, ShowCount,Move },
     
@@ -54,8 +60,8 @@ export default {
             title: '选择关卡',
             showLevel: false,
             isGameActive: true, // 游戏是否处于活动状态
-            count: 0,
-            history: [] // 保存 { layout, selectedIndex }
+        count: 0,
+        stepLimit: 10 // 步数限制
         }
     },
     methods: {
@@ -65,67 +71,45 @@ export default {
             this.showLevel = false;
             this.isGameActive = true; // 游戏开始
             this.count = 0; // 重置步数
-       },
+        },
         checkVictory() {
-                console.log("before")
-                let userInfo = JSON.parse(localStorage.getItem('loginUser'));
-                console.log(userInfo)
-            addAward(userInfo.username);// 继续游戏
-                console.log("after")
+        console.log("before")
+        let userInfo = JSON.parse(localStorage.getItem('loginUser'));
+        console.log(userInfo)
+        addAward(userInfo.username);// 继续游戏
+        console.log("after")
+        
+        // 清零步数
+        this.count = 0;
+        this.$refs.showCount.addCount(-this.count); // 同步更新 ShowCount 组件中的步数
         },
         incrementCount() {
             // console.log(this.count);
-             // 调用 ShowCount 的 addCount 方法
-            this.$refs.showCount.addCount();
-        },
-        handleVictory() {
-            if (!this.isGameActive) return;
-            this.isGameActive = false;
-            this.layout = '22222222222222222222'; // 终局
-            this.$nextTick(() => {
-                this.$alert(
-                    `恭喜你，成功过关！<br>共用步数：<b style="color:#409EFF">${this.count}</b> 步`,
-                    '通关成功',
-                    {
-                        dangerouslyUseHTMLString: true,
-                        confirmButtonText: '确定',
-                        center: true,
-                        customClass: 'success-message-box'
-                    }
-                );
-                this.checkVictory();
-            });
-        },
-        handleUndo() {
-            if (this.history.length > 0) {
-                const prev = this.history.pop();
-                console.log("layout更改为：", prev.layout);
-                this.layout = prev.layout;
-                if (this.count > 0) this.count--;
-                this.$nextTick(() => {
-                    // 恢复 Move 的选中位置
-                    console.log("恢复 Move 的选中位置:", prev.selectedIndex);
-                    this.$refs.move.setSelectedIndex(prev.selectedIndex);
-                });
+            if (this.count >= this.stepLimit) {
+                this.isGameActive = false; // 停止游戏
+                alert('游戏结束！您已达到最高限制。');
+            this.notifyExitGame(); // 通知服务器用户退出游戏
+                this.layout= '22222222222222222222'; // 重置布局
+                this.title = '选择关卡'; // 重置标题
             } else {
-                alert('没有可以悔棋的步骤了！');
-            }
-        },
+                this.$refs.showCount.addCount(); // 更新 ShowCount 组件中的步数
+            } 
+    },
+    increaseLimit() {
+        this.stepLimit += 10; // 每次增加 10 步
+    },
+    decreaseLimit() {
+        if (this.stepLimit > 10) {
+            this.stepLimit -= 10; // 每次减少 10 步，最小值为 10
+        } else {
+            alert('步数限制不能小于 10！');
+        }
+    },
         updateLayout(newLayout) {
-            console.log("updateLayout函数被调用，新的布局为:", newLayout);
-            const moveRef = this.$refs.move;
-            let selectedIndex = -1;
-            if (moveRef && moveRef.selectedIndex !== undefined) {
-                selectedIndex = typeof moveRef.selectedIndex === 'object' && 'value' in moveRef.selectedIndex
-                    ? moveRef.selectedIndex.value
-                    : moveRef.selectedIndex;
-            }
-            console.log('保存到history的selectedIndex:', selectedIndex);
-            console.log('保存到history的layout:', this.layout);
-            this.history.push({ layout: this.layout, selectedIndex });
             this.layout = newLayout;
+            console.log("父组件的 layout 更新为:", newLayout);
         },
-        //用于在鼠标点击后重新确定选中位置
+                //用于在鼠标点击后重新确定选中位置
         handleSelectIndex(newIndex) {
             // 保存当前 layout 和当前选中位置到 history
             const moveRef = this.$refs.move;
@@ -211,7 +195,6 @@ export default {
                 layout: newLayout
             };
 
-            
             // 调用 changePlayingUser 函数
             changePlayingUser(data).catch(error => {
                 console.error('通知服务器用户布局变化失败:', error);
@@ -243,80 +226,91 @@ export default {
         return { router };
     }
 }
-
-</script>
-
-<style lang="less">
-#main {
-    position: absolute;
-    top: 20%;
-    left: 20%;
-    transform: translate(-50%, -50%);
+  
+  </script>
+  
+  <style lang="less">
+  #main {
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.6); /* 半透明白色背景 */
+      background-image: none; /* 移除背景图片 */
+      border: 2px solid #ccc; /* 边框 */
+      padding: 20px; /* 内边距 */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+      border-radius: 10px; /* 圆角 */
+  }
+  
+  .select-btn {
+      position: relative; /* 确保 z-index 生效 */
+      z-index: 10; /* 设置更高的层级 */
+      margin-top: 0px;
+      background-color: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
+      color: #000; /* 黑色文字 */
+      border: 1px solid rgba(255, 255, 255, 0.1); /* 半透明边框 */
+      border-radius: 5px; /* 圆角 */
+      min-width: 120px;
+      line-height: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease; /* 添加过渡效果 */
+  
+      &:hover {
+          background-color: rgba(255, 255, 255, 0.8); /* 鼠标悬停时背景颜色加深 */
+          border-color: rgba(255, 255, 255, 1); /* 鼠标悬停时边框颜色加深 */
+      }
+  
+      &:active {
+          color: #09c; /* 点击时文字颜色变化 */
+      }
+  }
+  
+  .show-count-container{
+      position: absolute;
+      top:10%;
+      right:5%;
+      width: 200px;
+      background-color: #fff;
+      border:1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }    
+  .limit-control {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background-color: rgba(255, 255, 255, 0.6); /* 半透明白色背景 */
-    background-image: none; /* 移除背景图片 */
-    border: 2px solid #ccc; /* 边框 */
-    padding: 20px; /* 内边距 */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 阴影效果 */
-    border-radius: 10px; /* 圆角 */
-}
+    margin-top: 10px;
 
-.select-btn {
-    position: relative; /* 确保 z-index 生效 */
-    z-index: 10; /* 设置更高的层级 */
-    margin-top: 0px;
-    background-color: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
-    color: #000; /* 黑色文字 */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* 半透明边框 */
-    border-radius: 5px; /* 圆角 */
-    min-width: 120px;
-    line-height: 30px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease; /* 添加过渡效果 */
+    button {
+        margin: 5px 0;
+        padding: 5px 10px;
+        background-color: #09c;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
 
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.8); /* 鼠标悬停时背景颜色加深 */
-        border-color: rgba(255, 255, 255, 1); /* 鼠标悬停时边框颜色加深 */
+        &:hover {
+            background-color: #0077cc;
+        }
+
+        &:active {
+            background-color: #005fa3;
+        }
     }
 
-    &:active {
-        color: #09c; /* 点击时文字颜色变化 */
+    span {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #333;
     }
 }
-
-.show-count-container{
-    position: absolute;
-    top:10%;
-    right:5%;
-    width: 200px;
-    background-color: #fff;
-    border:1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}  
-.undo-btn {
-    position: absolute;
-    top: 18%;
-    left: 290px;
-    z-index: 100;
-    padding: 6px 16px;
-    background: rgba(255,255,255,0.7);  // 半透明白色背景
-    color: #000;                        // 黑色文字
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}  
-.move-bottom-right {
-    position: fixed;
-    right: 40px;
-    bottom: 40px;
-    z-index: 200;
-}
-</style>
-
+  </style>

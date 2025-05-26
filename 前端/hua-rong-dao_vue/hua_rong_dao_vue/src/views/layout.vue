@@ -136,8 +136,12 @@ input.click(); // 模拟点击文件输入框
                 正常游戏
               </el-menu-item>
               <!-- 限时模式菜单 -->
-              <el-menu-item index="/timeMode">
+              <el-menu-item index="/stepMode">
                 限制步数模式
+              </el-menu-item>
+                <!-- 限时模式菜单 -->
+                <el-menu-item index="/timeMode">
+                限时模式
               </el-menu-item>
               <!-- 排行榜菜单 -->
               <el-menu-item index="/leaderboard">

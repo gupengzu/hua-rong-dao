@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import Layout from '@/views/layout.vue'; // 引入 Layout 组件
 import normalGameView from '@/views/normalGame.vue';
+import stepModeView from '@/views/stepMode.vue';
 import timeModeView from '@/views/timeMode.vue';
 import leaderboardView from '@/views/leaderboard.vue';
 import spectateView from '@/views/spectate.vue';
@@ -26,9 +27,14 @@ const router = createRouter({
                     component: normalGameView // 展示的组件就是上方 import 的那个组件
                 },
                 {
+                    path: 'stepMode',
+                    name: 'stepMode', // 时间模式路由
+                    component: stepModeView // 对应的时间模式组件
+                },
+                {
                     path: 'timeMode',
-                    name: 'timeMode', // 时间模式路由
-                    component: timeModeView // 对应的时间模式组件
+                    name: 'timeMode', // 步骤模式路由
+                    component: timeModeView // 对应的步骤模式组件
                 },
                 {
                     path: 'leaderboard',

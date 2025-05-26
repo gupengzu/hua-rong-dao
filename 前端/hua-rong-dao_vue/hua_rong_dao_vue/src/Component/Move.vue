@@ -46,6 +46,31 @@
 <script setup>
 import { ref, watch,defineExpose } from 'vue';
 import core from '@/api/core.js'; //core.js 中有 moveUp, moveDown, moveLeft, moveRight 方法
+import { onMounted,onUnmounted } from 'vue';
+
+// 监听键盘事件
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
+function handleKeydown(e) {
+  if (e.code === 'ArrowUp') {
+    move('up');
+    e.preventDefault();
+  } else if (e.code === 'ArrowDown') {
+    move('down');
+    e.preventDefault();
+  } else if (e.code === 'ArrowLeft') {
+    move('left');
+    e.preventDefault();
+  } else if (e.code === 'ArrowRight') {
+    move('right');
+    e.preventDefault();
+  }
+}
+
 
 // 假设父组件通过 provide 传递 layout 字符串
 const props = defineProps({
